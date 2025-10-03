@@ -1,0 +1,54 @@
+#! /usr/bin/env bb
+
+(require '[babashka.cli :as cli])
+(require '[clojure.string :as string])
+
+
+(defn show-app-info []
+  (println "what - Informações sobre commandos CLI de utilitários de sistema.\n"))
+
+
+(defn show-not-implemented [_]
+  (println "Ainda nao implementado."))
+
+
+(def actions-map
+  "Map describing valid actions, their description, command function and number of expected parameters."
+  (array-map
+    ; :command-key [description command-function number-parameters]
+   :list ["     Lista os comandos disponíveis." show-not-implemented 0]
+   :is ["       Mostra a definição de um comando." show-not-implemented 0]
+   :doc ["      Mostra a documentação de um comando." show-not-implemented 0]
+   :add ["      Adiciona um comando à base de dados." show-not-implemented 0]
+   :rm ["       Remove um comando da base de dados." show-not-implemented 0]
+   :upd ["      Atualiza a informação de um comando na base de dados." show-not-implemented 0]
+   :help ["     Mostra o uso do aplicativo."]
+   :h ["        Mostra o uso do aplicativo."]
+   :? ["        Mostra o uso do aplicativo."]))
+
+
+(defn get-actions-descriptions
+  []
+  (string/join "\n"
+    (for [[key [description]] actions-map] (str "    " (name key) description))))
+
+
+(defn show-usage
+  [_]
+  (println (string/join "\n"
+                        ["Uso: what <ação> [<nome do comando>]"
+                         ""
+                         "Ações:"
+                         (get-actions-descriptions)])))
+
+
+(def actions
+  (let [help-cmds [:help :h :?]]
+    (conj
+      (vec
+        (for [[key [description command num-params]] actions-map]
+          {:cmds [(name key)] :fn (if (some #{key} help-cmds) show-usage command)}))
+      {:cmds [] :fn show-usage})))
+
+
+(cli/dispatch actions *command-line-args*)
