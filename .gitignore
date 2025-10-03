@@ -1,2 +1,5 @@
+.calva/
+.clj-kondo/
+.lsp
 *.code-workspace
 hello

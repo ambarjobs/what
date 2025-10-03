@@ -2,6 +2,7 @@
 
 (require '[babashka.cli :as cli])
 (require '[clojure.string :as string])
+(require '[what.actions-handling :as actions])
 
 
 (defn show-app-info []
@@ -16,7 +17,7 @@
   "Map describing valid actions, their description, command function and number of expected parameters."
   (array-map
     ; :command-key [description command-function number-parameters]
-   :list ["     Lista os comandos disponíveis." show-not-implemented 0]
+   :list ["     Lista os comandos disponíveis." actions/list-commands 0]
    :is ["       Mostra a definição de um comando." show-not-implemented 0]
    :doc ["      Mostra a documentação de um comando." show-not-implemented 0]
    :add ["      Adiciona um comando à base de dados." show-not-implemented 0]
@@ -30,7 +31,7 @@
 (defn get-actions-descriptions
   []
   (string/join "\n"
-    (for [[key [description]] actions-map] (str "    " (name key) description))))
+               (for [[key [description]] actions-map] (str "    " (name key) description))))
 
 
 (defn show-usage
@@ -45,10 +46,10 @@
 (def actions
   (let [help-cmds [:help :h :?]]
     (conj
-      (vec
-        (for [[key [description command num-params]] actions-map]
-          {:cmds [(name key)] :fn (if (some #{key} help-cmds) show-usage command)}))
-      {:cmds [] :fn show-usage})))
+     (vec
+      (for [[key [description command num-params]] actions-map]
+        {:cmds [(name key)] :fn (if (some #{key} help-cmds) show-usage command)}))
+     {:cmds [] :fn show-usage})))
 
 
 (cli/dispatch actions *command-line-args*)
