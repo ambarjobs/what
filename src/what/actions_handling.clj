@@ -7,4 +7,4 @@
 
 (defn list-commands
   [_]
-  (println (string/join "\n" (db/get-commands))))
+  (println (string/join "\n" (map #(:command %) (db/get-commands)))))
