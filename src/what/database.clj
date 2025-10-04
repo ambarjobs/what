@@ -4,9 +4,10 @@
             [honey.sql :as sql]
             [honey.sql.helpers :as helper]))
 
-(def db "db/what.sqlite3")
+(def db "/home/armando/Desenv/Clojure/Babashka/what/db/what.sqlite3")
 
-(defn get-commands
+(defn get-command-records
+  "Get all command records from database."
   []
-  (let [sql ["select command, description from command order by command.command"]]
+  (let [sql ["select command, description, doc, name from command order by command.command"]]
     (sqlite/query db sql)))
