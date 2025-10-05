@@ -13,3 +13,12 @@
                                   :from [:command]
                                   :order-by [:command]})]
     (sqlite/query db sql-sentence)))
+
+
+(defn get-command-record
+  "Get the record corresponding to a specific command."
+  [command]
+  (let [sql-sentence (sql/format {:select [:command :description :name]
+                                  :from [:command]
+                                  :where [:= :command command]})]
+    (first (sqlite/query db sql-sentence))))

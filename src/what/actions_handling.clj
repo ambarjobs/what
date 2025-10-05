@@ -10,6 +10,13 @@
   (let [command-names (map #(:command %) command-records)]
     (apply max (map count command-names))))
 
+
+(defn format-description
+  "Format command's description to include its textual name if different from the command name."
+  [description name]
+  (if (some? name) (format "[%s] %s" name description) description))
+
+
 (defn list-commands
   "List command and their descriptions."
   [_]
@@ -18,5 +25,16 @@
         cmd-format-str (str "%" larger-cmd-size "s:  %s")]
 
     (doseq [{:keys [command description name]} command-records]
-      (let [formated-description (if (some? name) (format "[%s] %s" name description) description)]
+      (let [formated-description (format-description description name)]
         (println (format cmd-format-str command formated-description))))))
+
+
+(defn show-command-info
+  "Show the command information."
+  [args]
+  (let [{:keys [opts]} args
+        {command-name :command} opts
+        {:keys [command description name]} (db/get-command-record command-name)]
+    (if (some? command)
+      (println (format "%s: %s" command (format-description description name)))
+      (println (format "Comando [%s] não encontrado." (or command-name ""))))))
