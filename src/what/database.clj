@@ -9,5 +9,7 @@
 (defn get-command-records
   "Get all command records from database."
   []
-  (let [sql ["select command, description, doc, name from command order by command.command"]]
-    (sqlite/query db sql)))
+  (let [sql-sentence (sql/format {:select [:command :description :doc :name]
+                                  :from [:command]
+                                  :order-by [:command]})]
+    (sqlite/query db sql-sentence)))
