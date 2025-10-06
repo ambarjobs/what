@@ -1,6 +1,5 @@
 (ns what.database
   (:require [pod.babashka.go-sqlite3 :as sqlite]
-            ;; [next.jdbc :as jdbc]
             [honey.sql :as sql]
             [honey.sql.helpers :as helper]))
 
@@ -22,3 +21,12 @@
                                   :from [:command]
                                   :where [:= :command command]})]
     (first (sqlite/query db sql-sentence))))
+
+
+(defn add-command
+  "Add command record to the database."
+  [command description doc name]
+  (let [sql-sentence (sql/format {:insert-into [:command]
+                                  :columns [:command :description :doc :name]
+                                  :values [[command description doc name]]})]
+    (sqlite/execute! db sql-sentence)))
