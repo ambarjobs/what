@@ -35,6 +35,6 @@
   (let [{:keys [opts]} args
         {command-name :command} opts
         {:keys [command description name]} (db/get-command-record command-name)]
-    (if (some? command)
-      (println (format "%s: %s" command (format-description description name)))
-      (println (format "Comando [%s] não encontrado." (or command-name ""))))))
+    (cond (not (some? command-name)) (println "É necessário informar o nome do comando procurado. Ex: what is <comando>.")
+          (not (some? command)) (println (format "Comando [%s] não encontrado." (or command-name "")))
+          :else (println (format "%s: %s" command (format-description description name))))))
