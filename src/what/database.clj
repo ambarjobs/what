@@ -17,7 +17,7 @@
 (defn get-command-record
   "Get the record corresponding to a specific command."
   [command]
-  (let [sql-sentence (sql/format {:select [:command :description :name]
+  (let [sql-sentence (sql/format {:select [:command :description :doc :name]
                                   :from [:command]
                                   :where [:= :command command]})]
     (first (sqlite/query db sql-sentence))))
@@ -36,5 +36,16 @@
   "Remove a command record from the database."
   [command]
   (let [sql-sentence (sql/format {:delete-from [:command]
+                                  :where [:= :command command]})]
+    (sqlite/execute! db sql-sentence)))
+
+
+(defn update-command-record
+  "Update a command record on the database."
+  [command description doc name]
+  (let [sql-sentence (sql/format {:update [:command]
+                                  :set {:description description
+                                        :doc doc
+                                        :name name}
                                   :where [:= :command command]})]
     (sqlite/execute! db sql-sentence)))
