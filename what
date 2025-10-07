@@ -18,7 +18,7 @@
    {:cmds ["is"] :description ["       Mostra a definição de um comando."] :fn actions/show-command-info :opts [:command]}
    {:cmds ["doc"] :description ["      Mostra a documentação de um comando."] :fn show-not-implemented}
    {:cmds ["add"] :description ["      Adiciona um comando à base de dados."] :fn actions/add-command :opts [:command]}
-   {:cmds ["rm"] :description ["       Remove um comando da base de dados."] :fn show-not-implemented}
+   {:cmds ["rm"] :description ["       Remove um comando da base de dados."] :fn actions/rm-command :opts [:command]}
    {:cmds ["upd"] :description ["      Atualiza a informação de um comando na base de dados."] :fn show-not-implemented}
    {:cmds ["help"] :description ["     Mostra o uso do aplicativo."]}
    {:cmds ["h"] :description ["        Mostra o uso do aplicativo."]}

@@ -23,10 +23,18 @@
     (first (sqlite/query db sql-sentence))))
 
 
-(defn add-command
+(defn insert-command-record
   "Add command record to the database."
   [command description doc name]
   (let [sql-sentence (sql/format {:insert-into [:command]
                                   :columns [:command :description :doc :name]
                                   :values [[command description doc name]]})]
+    (sqlite/execute! db sql-sentence)))
+
+
+(defn delete-command-record
+  "Remove a command record from the database."
+  [command]
+  (let [sql-sentence (sql/format {:delete-from [:command]
+                                  :where [:= :command command]})]
     (sqlite/execute! db sql-sentence)))

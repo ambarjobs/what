@@ -43,7 +43,7 @@
 
 
 (defn add-command
-  "Adiciona um novo comando na base de dados."
+  "Add a new command entry to the database."
   [args]
   (let [{:keys [opts]} args
         {raw-command-name :command} opts
@@ -54,10 +54,25 @@
         raw-util-name (utils/prompted-input "Nome do utilitário (se diferente do nome do comando): ")
         util-name (if (= raw-util-name "") nil raw-util-name)]
     (try
-      (let [result (db/add-command command-name command-description command-help util-name)]
-        (when (not= (:rows-affected result) 1)
+      (let [result (db/insert-command-record command-name command-description command-help util-name)]
+        (if (= (:rows-affected result) 1)
+          (println (format "\nO comando [%s] foi adicionado com sucesso." command-name))
           (println (format "\nNão foi possível adicionar o comando [%s] à base de dados." command-name))))
       (catch Exception except
         (if (= (:cause (Throwable->map except)) "UNIQUE constraint failed: command.command")
           (println (format "\nO comando [%s] já existe na base de dados." command-name))
           (println (format "\nErro tentando adicionar o comando [%s] na base de dados." command-name)))))))
+
+
+(defn rm-command
+  "Remove a command from database."
+  [args]
+  (let [{:keys [opts]} args
+        {raw-command-name :command} opts
+        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+        confirmation (utils/prompted-input (format "Deseja realmente REMOVER o comando [%s] (s/N): " command-name))]
+    (when (some #{confirmation} ["s" "S"])
+        (let [result (db/delete-command-record command-name)]
+          (if (= (:rows-affected result) 1)
+            (println (format "\nComando [%s] removido com sucesso." command-name))
+            (println (format "\nO comando [%s] não existe na base de dados." command-name)))))))
