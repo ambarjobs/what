@@ -1,8 +1,11 @@
 (ns what.actions-handling
   (:require
-   ;;  [clojure.string :as string]
+   [babashka.process :as proc]
    [what.database :as db]
    [what.utils :as utils]))
+
+
+(def pager-cmd "less -F")
 
 
 (defn get-larger-cmd-size
@@ -105,3 +108,20 @@
             (println (format "\nO comando [%s] foi atualizado com sucesso." command-name))
             (println (format "\nNão foi possível atualizar o comando [%s] à base de dados." command-name)))))
       (println (format "\nO comando [%s] não existe na base de dados." command-name)))))
+
+
+(defn doc-command
+  "Calls command's docs."
+  [args]
+  (let [{:keys [opts]} args
+        {raw-command-name :command} opts
+        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+        result (db/get-command-record command-name)
+        {:keys [command doc]} result]
+    (prn command doc)
+    (if (some? command)
+      (if (= doc "man")
+        (proc/shell "man" command)
+        (let [cmd-result (proc/shell {:out :string :continue true} command doc)]
+          (proc/shell {:in (:out cmd-result) :continue true} pager-cmd)))
+      (println (format "Comando [%s] não encontrado." (or command-name ""))))))

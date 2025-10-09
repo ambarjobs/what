@@ -1,7 +1,6 @@
 (ns what.database
   (:require [pod.babashka.go-sqlite3 :as sqlite]
-            [honey.sql :as sql]
-            [honey.sql.helpers :as helper]))
+            [honey.sql :as sql]))
 
 (def db "/home/armando/Desenv/Clojure/Babashka/what/db/what.sqlite3")
 
