@@ -2,10 +2,8 @@
   (:require
    [babashka.process :as proc]
    [what.database :as db]
-   [what.utils :as utils]))
-
-
-(def pager-cmd "less -F")
+   [what.utils :as utils]
+   [what.config :refer [config-data]]))
 
 
 (defn get-larger-cmd-size
@@ -42,8 +40,8 @@
         result (db/get-command-record command-name)
         {:keys [command description name]} result]
     (if (some? command)
-      (println (format "%s: %s" command (format-description description name)))
-      (println (format "Comando [%s] não encontrado." (or command-name ""))))))
+      (println (format "\n%s: %s" command (format-description description name)))
+      (println (format "\nComando [%s] não encontrado." (or command-name ""))))))
 
 
 (defn add-command
@@ -118,10 +116,15 @@
         command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
         result (db/get-command-record command-name)
         {:keys [command doc]} result]
-    (prn command doc)
     (if (some? command)
       (if (= doc "man")
         (proc/shell "man" command)
         (let [cmd-result (proc/shell {:out :string :continue true} command doc)]
-          (proc/shell {:in (:out cmd-result) :continue true} pager-cmd)))
+          (proc/shell {:in (:out cmd-result) :continue true} (:pager-cmd config-data))))
       (println (format "Comando [%s] não encontrado." (or command-name ""))))))
+
+
+(defn debug
+  "Action for debugging purposes."
+  [_]
+  (prn (:pager-cmd config-data)))
