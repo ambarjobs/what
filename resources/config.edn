@@ -1,0 +1,2 @@
+{:pager-cmd "less -F"
+ :db-file "db/what.sqlite3"}

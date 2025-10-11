@@ -1,8 +1,16 @@
 (ns what.database
-  (:require [pod.babashka.go-sqlite3 :as sqlite]
-            [honey.sql :as sql]))
+  (:require [clojure.java.io :as io]
+            [pod.babashka.go-sqlite3 :as sqlite]
+            [honey.sql :as sql]
+            [what.config :refer [config-data]]))
 
-(def db "/home/armando/Desenv/Clojure/Babashka/what/db/what.sqlite3")
+
+(def db (->>
+  (:db-file config-data)
+  io/resource
+  io/as-file
+  str))
+
 
 (defn get-command-records
   "Get all command records from database."

@@ -21,7 +21,7 @@
    {:cmds ["rm"] :description "        Remove um comando da base de dados." :fn actions/rm-command :opts [:command]}
    {:cmds ["upd"] :description "       Atualiza a informação de um comando na base de dados." :fn actions/upd-command :opts [:command]}
    {:cmds ["help|h|?"] :description "  Mostra o uso do aplicativo."}
-   {:cmds ["debug"] :fn actions/debug}
+   {:cmds ["dbg"] :fn actions/debug}
    ])
 
 
@@ -31,7 +31,7 @@
   (string/join "\n"
                (for [{:keys [cmds description]} base-actions-table]
                  (let [cmd (first cmds)]
-                   (when (not= cmd "debug")
+                   (when (not= cmd "dbg")
                      (str "    " cmd description))))))
 
 
