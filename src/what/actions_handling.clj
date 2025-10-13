@@ -19,24 +19,30 @@
   (if (some? name) (format "[%s] %s" name description) description))
 
 
+(defn get-command-name
+  "Get command name from ags or ask for one."
+  [args]
+  (let [{:keys [opts]} args
+        {raw-command-name :command} opts
+        ]
+    (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))))
+
+
 (defn list-commands
   "List command and their descriptions."
   [_]
   (let [command-records (db/get-command-records)
         larger-cmd-size (get-larger-cmd-size command-records)
         cmd-format-str (str "%" larger-cmd-size "s:  %s")]
-
     (doseq [{:keys [command description name]} command-records]
       (let [formated-description (format-description description name)]
         (println (format cmd-format-str command formated-description))))))
 
 
 (defn show-command-info
-  "Show the command information."
+  "Show information of a specific command."
   [args]
-  (let [{:keys [opts]} args
-        {raw-command-name :command} opts
-        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+  (let [command-name (get-command-name args)
         result (db/get-command-record command-name)
         {:keys [command description name]} result]
     (if (some? command)
@@ -47,9 +53,7 @@
 (defn add-command
   "Add a new command entry to the database."
   [args]
-  (let [{:keys [opts]} args
-        {raw-command-name :command} opts
-        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+  (let [command-name  (get-command-name args)
         command-description (utils/prompted-input "Descrição do comando: ")
         raw-command-help (utils/prompted-input "Help do comando (man (default) | --help | --outra-opção): ")
         command-help (if (= raw-command-help "") "man" raw-command-help)
@@ -69,9 +73,7 @@
 (defn rm-command
   "Remove a command from database."
   [args]
-  (let [{:keys [opts]} args
-        {raw-command-name :command} opts
-        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+  (let [command-name  (get-command-name args)
         confirmation (utils/prompted-input (format "Deseja realmente REMOVER o comando [%s] (s/N): " command-name))]
     (when (some #{confirmation} ["s" "S"])
       (let [result (db/delete-command-record command-name)]
@@ -83,9 +85,7 @@
 (defn upd-command
   "Update the command fields."
   [args]
-  (let [{:keys [opts]} args
-        {raw-command-name :command} opts
-        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+  (let [command-name  (get-command-name args)
         result (db/get-command-record command-name)]
     (if (some? result)
       (do
@@ -111,9 +111,7 @@
 (defn doc-command
   "Calls command's docs."
   [args]
-  (let [{:keys [opts]} args
-        {raw-command-name :command} opts
-        command-name (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))
+  (let [command-name  (get-command-name args)
         result (db/get-command-record command-name)
         {:keys [command doc]} result]
     (if (some? command)
