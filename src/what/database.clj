@@ -56,3 +56,13 @@
                                         :name name}
                                   :where [:= :command command]})]
     (sqlite/execute! db sql-sentence)))
+
+
+(defn get-command-urls
+  "Get URLs linked to a command."
+  [command]
+  (let [sql-sentence (sql/format {:select [:u.url]
+                                  :from [[:command :c]]
+                                  :join [[:url :u] [:= :c.command :u.command]]
+                                  :where [:= :c.command command]})]
+    (sqlite/query db sql-sentence)))

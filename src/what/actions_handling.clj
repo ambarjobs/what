@@ -23,8 +23,7 @@
   "Get command name from ags or ask for one."
   [args]
   (let [{:keys [opts]} args
-        {raw-command-name :command} opts
-        ]
+        {raw-command-name :command} opts]
     (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))))
 
 
@@ -47,7 +46,7 @@
         {:keys [command description name]} result]
     (if (some? command)
       (println (format "\n%s: %s" command (format-description description name)))
-      (println (format "\nComando [%s] não encontrado." (or command-name ""))))))
+      (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 
 (defn add-command
@@ -79,7 +78,7 @@
       (let [result (db/delete-command-record command-name)]
         (if (= (:rows-affected result) 1)
           (println (format "\nComando [%s] removido com sucesso." command-name))
-          (println (format "\nO comando [%s] não existe na base de dados." command-name)))))))
+          (println (format "\nO comando [%s] não existe na base de dados." (or command-name ""))))))))
 
 
 (defn upd-command
@@ -105,7 +104,7 @@
           (if (= (:rows-affected result) 1)
             (println (format "\nO comando [%s] foi atualizado com sucesso." command-name))
             (println (format "\nNão foi possível atualizar o comando [%s] à base de dados." command-name)))))
-      (println (format "\nO comando [%s] não existe na base de dados." command-name)))))
+      (println (format "\nO comando [%s] não existe na base de dados." (or command-name ""))))))
 
 
 (defn doc-command
@@ -119,10 +118,24 @@
         (proc/shell "man" command)
         (let [cmd-result (proc/shell {:out :string :continue true} command doc)]
           (proc/shell {:in (:out cmd-result) :continue true} (:pager-cmd config-data))))
-      (println (format "Comando [%s] não encontrado." (or command-name ""))))))
+      (println (format "Comando [%s] não encontrado na base de dados." (or command-name ""))))))
+
+
+(defn get-command-urls
+  "Get the URLs associated with a command."
+  [args]
+  (let [command-name (get-command-name args)
+        result (db/get-command-record command-name)
+        command-urls (map #(:url %) (db/get-command-urls command-name))]
+    (if (some? result)
+      (doseq [url command-urls]
+        (println url))
+      (println (format "Comando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 
 (defn debug
   "Action for debugging purposes."
   [_]
-  (prn (:pager-cmd config-data)))
+  (doseq [url (map #(:url %) (db/get-command-urls "dysk"))]
+    ;; (utils/send-clipboard url)
+    (println url)))
