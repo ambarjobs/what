@@ -68,8 +68,8 @@
     (sqlite/query db sql-sentence)))
 
 
-(defn find-command
-  "Find the command which have a query-string on it's command or description fields."
+(defn find-command-records
+  "Find the command records which have a query-string on theirs command or description fields."
   [query-string fields]
   (let [valid-fields [:command :description :name]
         fields-elements (for

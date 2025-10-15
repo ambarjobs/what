@@ -11,7 +11,7 @@
   "Get size of the larger command."
   [command-records]
   (let [command-names (map #(:command %) command-records)]
-    (apply max (map count command-names))))
+    (if (empty? command-records) 0 (apply max (map count command-names)))))
 
 
 (defn format-description
@@ -38,10 +38,14 @@
 
 (defn show-command-record
   "Show information of a single command record."
-  [command-record]
-  (let [{:keys [command description name]} command-record]
-    (when (some? command)
-      (println (format "%s: %s" command (format-description description name))))))
+  ([command-record] (show-command-record command-record true 1))
+  ([command-record new-line?] (show-command-record command-record new-line? 1))
+  ([command-record new-line? cmd-size] (let [{:keys [command description name]} command-record
+                                             new-line (if new-line? "\n" "")
+                                             cmd-format-str (str "%s%" cmd-size "s:  %s")
+                                             formated-description (format-description description name)]
+                                         (when (some? command)
+                                           (println (format cmd-format-str new-line command formated-description))))))
 
 
 ;; ---------------------------------------------------------------------------------------------------------------------
@@ -52,21 +56,18 @@
   "List command and their descriptions."
   [_]
   (let [command-records (db/get-command-records)
-        larger-cmd-size (get-larger-cmd-size command-records)
-        cmd-format-str (str "%" larger-cmd-size "s:  %s")]
-    (doseq [{:keys [command description name]} command-records]
-      (let [formated-description (format-description description name)]
-        (println (format cmd-format-str command formated-description))))))
+        larger-cmd-size (get-larger-cmd-size command-records)]
+    (doseq [command-record command-records]
+      (show-command-record command-record false larger-cmd-size))))
 
 
 (defn show-command-info
   "Show information of a specific command."
   [args]
   (let [command-name (get-command-name args)
-        result (db/get-command-record command-name)
-        {:keys [command description name]} result]
-    (if (some? command)
-      (println (format "\n%s: %s" command (format-description description name)))
+        result (db/get-command-record command-name)]
+    (if (some? result)
+      (show-command-record result)
       (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 
@@ -168,16 +169,17 @@
         fields-string (if (= raw-fields-string "") "command description" raw-fields-string)
         fields (utils/process-string-list fields-string keyword)
         query-fields (if (some #{:description} fields) (conj fields :name) fields)
-        command-records (db/find-command query-string query-fields)]
+        command-records (db/find-command-records query-string query-fields)
+        larger-cmd-size (get-larger-cmd-size command-records)]
     (println)
     (if (empty? command-records)
       (println
        (format "Não foram encontrados comandos com a palavra [%s] nos campos [%s]." query-string (show-fields fields)))
       (doseq [command-record command-records]
-        (show-command-record command-record)))))
+        (show-command-record command-record false larger-cmd-size)))))
 
 
 (defn debug
   "Action for debugging purposes."
   [_]
-  (prn (db/find-command "proc" [:command :description])))
+  (prn (db/find-command-records "proc" [:command :description])))
