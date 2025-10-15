@@ -66,3 +66,17 @@
                                   :join [[:url :u] [:= :c.command :u.command]]
                                   :where [:= :c.command command]})]
     (sqlite/query db sql-sentence)))
+
+
+(defn find-command
+  "Find the command which have a query-string on it's command or description fields."
+  [query-string fields]
+  (let [valid-fields [:command :description :name]
+        fields-elements (for
+                         [field fields :when (some #{field} valid-fields)] [:like field (format "%%%s%%" query-string)])
+        fields-sentence (cons :or fields-elements)
+        sql-definition {:select [:command :description :name]
+                        :from [:command]
+                        :where fields-sentence}
+        sql-sentence (sql/format sql-definition)]
+    (sqlite/query db sql-sentence)))

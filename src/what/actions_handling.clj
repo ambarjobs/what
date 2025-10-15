@@ -1,9 +1,10 @@
 (ns what.actions-handling
   (:require
    [babashka.process :as proc]
+   [clojure.string :as string]
+   [what.config :refer [config-data]]
    [what.database :as db]
-   [what.utils :as utils]
-   [what.config :refer [config-data]]))
+   [what.utils :as utils]))
 
 
 (defn get-larger-cmd-size
@@ -20,12 +21,32 @@
 
 
 (defn get-command-name
-  "Get command name from ags or ask for one."
+  "Get command name from args or ask for one."
   [args]
   (let [{:keys [opts]} args
         {raw-command-name :command} opts]
     (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))))
 
+
+(defn get-query-string
+  "Get a query string from args or ask for one."
+  [args]
+  (let [{:keys [opts]} args
+        {raw-query-string :query-string} opts]
+    (or raw-query-string (utils/prompted-input "Digite a palavra a ser pesquisada: "))))
+
+
+(defn show-command-record
+  "Show information of a single command record."
+  [command-record]
+  (let [{:keys [command description name]} command-record]
+    (when (some? command)
+      (println (format "%s: %s" command (format-description description name))))))
+
+
+;; ---------------------------------------------------------------------------------------------------------------------
+;;   Actions
+;; ---------------------------------------------------------------------------------------------------------------------
 
 (defn list-commands
   "List command and their descriptions."
@@ -133,9 +154,30 @@
       (println (format "Comando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 
+(defn show-fields
+  "Show the fields used to filter the query for a command or description."
+  [fields]
+  (string/join " " (map name fields)))
+
+
+(defn find-command
+  "Find a command containing a query-string on the fields selected."
+  [args]
+  (let [query-string (get-query-string args)
+        raw-fields-string (utils/prompted-input "Digite os campos a serem pesquisados (<Enter>: command description): ")
+        fields-string (if (= raw-fields-string "") "command description" raw-fields-string)
+        fields (utils/process-string-list fields-string keyword)
+        query-fields (if (some #{:description} fields) (conj fields :name) fields)
+        command-records (db/find-command query-string query-fields)]
+    (println)
+    (if (empty? command-records)
+      (println
+       (format "Não foram encontrados comandos com a palavra [%s] nos campos [%s]." query-string (show-fields fields)))
+      (doseq [command-record command-records]
+        (show-command-record command-record)))))
+
+
 (defn debug
   "Action for debugging purposes."
   [_]
-  (doseq [url (map #(:url %) (db/get-command-urls "dysk"))]
-    ;; (utils/send-clipboard url)
-    (println url)))
+  (prn (db/find-command "proc" [:command :description])))

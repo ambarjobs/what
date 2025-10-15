@@ -17,6 +17,7 @@
   [{:cmds ["list"] :description "      Lista os comandos disponíveis." :fn actions/list-commands}
    {:cmds ["is"] :description "        Mostra a definição de um comando." :fn actions/show-command-info :opts [:command]}
    {:cmds ["doc"] :description "       Mostra a documentação de um comando." :fn actions/doc-command :opts [:command]}
+   {:cmds ["find"] :description "      Procura o comando através uma string." :fn actions/find-command :opts [:query-string]}
    {:cmds ["add"] :description "       Adiciona um comando à base de dados." :fn actions/add-command :opts [:command]}
    {:cmds ["rm"] :description "        Remove um comando da base de dados." :fn actions/rm-command :opts [:command]}
    {:cmds ["upd"] :description "       Atualiza a informação de um comando na base de dados." :fn actions/upd-command :opts [:command]}
