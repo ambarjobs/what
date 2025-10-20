@@ -1,7 +1,7 @@
 (ns what.database
   (:require [clojure.java.io :as io]
-            [pod.babashka.go-sqlite3 :as sqlite]
             [honey.sql :as sql]
+            [pod.babashka.go-sqlite3 :as sqlite]
             [what.config :refer [config-data]]))
 
 

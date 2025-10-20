@@ -182,11 +182,4 @@
 (defn debug
   "Action for debugging purposes."
   [_]
-  (prn
-    (let [prompt "Type something: "
-          input-string "asdfg"
-          result (with-in-str input-string (utils/prompted-input prompt))
-          output-value (with-out-str (with-in-str input-string (utils/prompted-input prompt)))]
-    ;; (let [result get-prompt
-    ;;       output-value (with-out-str get-prompt)]
-     [output-value result])))
+  ())

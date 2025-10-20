@@ -3,10 +3,11 @@
 (require '[clojure.test :as test])
 
 (require '[what.utils-test])
+(require '[what.database-test])
 
 
 (def test-results
-  (test/run-tests 'what.utils-test))
+  (test/run-tests 'what.utils-test 'what.database-test))
 
 
 (let [{:keys [fail error]} test-results]
