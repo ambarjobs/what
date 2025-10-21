@@ -4,10 +4,11 @@
 
 (require '[what.utils-test])
 (require '[what.database-test])
+(require '[what.actions-handling-test])
 
 
 (def test-results
-  (test/run-tests 'what.utils-test 'what.database-test))
+  (test/run-tests 'what.utils-test 'what.database-test 'what.actions-handling-test))
 
 
 (let [{:keys [fail error]} test-results]

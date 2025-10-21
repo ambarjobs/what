@@ -74,33 +74,36 @@
 (defn add-command
   "Add a new command entry to the database."
   [args]
-  (let [command-name  (get-command-name args)
-        command-description (utils/prompted-input "Descrição do comando: ")
-        raw-command-help (utils/prompted-input "Help do comando (man (default) | --help | --outra-opção): ")
-        command-help (if (= raw-command-help "") "man" raw-command-help)
-        raw-util-name (utils/prompted-input "Nome do utilitário (se diferente do nome do comando): ")
-        util-name (if (= raw-util-name "") nil raw-util-name)]
-    (try
-      (let [result (db/insert-command-record command-name command-description command-help util-name)]
-        (if (= (:rows-affected result) 1)
-          (println (format "\nO comando [%s] foi adicionado com sucesso." command-name))
-          (println (format "\nNão foi possível adicionar o comando [%s] à base de dados." command-name))))
-      (catch Exception except
-        (if (= (:cause (Throwable->map except)) "UNIQUE constraint failed: command.command")
-          (println (format "\nO comando [%s] já existe na base de dados." command-name))
-          (println (format "\nErro tentando adicionar o comando [%s] na base de dados." command-name)))))))
+  (let [command-name  (get-command-name args)]
+    (if (empty? command-name)
+      (println "\nO nome do comando deve ser fornecido.")
+      (let [command-description (utils/prompted-input "Descrição do comando: ")
+            raw-command-help (utils/prompted-input "Help do comando (man (default) | --help | --outra-opção): ")
+            command-help (if (= raw-command-help "") "man" raw-command-help)
+            raw-util-name (utils/prompted-input "Nome do utilitário (se diferente do nome do comando): ")
+            util-name (if (= raw-util-name "") nil raw-util-name)]
+        (try
+          (let [result (db/insert-command-record command-name command-description command-help util-name)]
+            (if (= (:rows-affected result) 1)
+              (println (format "\nO comando [%s] foi adicionado com sucesso." command-name))
+              (println (format "\nNão foi possível adicionar o comando [%s] à base de dados." command-name))))
+          (catch Exception except
+            (if (= (:cause (Throwable->map except)) "UNIQUE constraint failed: command.command")
+              (println (format "\nO comando [%s] já existe na base de dados." command-name))
+              (println (format "\nErro tentando adicionar o comando [%s] na base de dados." command-name)))))))))
 
 
 (defn rm-command
   "Remove a command from database."
   [args]
   (let [command-name  (get-command-name args)
-        confirmation (utils/prompted-input (format "Deseja realmente REMOVER o comando [%s] (s/N): " command-name))]
-    (when (some #{confirmation} ["s" "S"])
+        confirmation (utils/prompted-input (format "Deseja realmente REMOVER o comando [%s]? (s/N): " command-name))]
+    (if (some #{confirmation} ["s" "S"])
       (let [result (db/delete-command-record command-name)]
         (if (= (:rows-affected result) 1)
           (println (format "\nComando [%s] removido com sucesso." command-name))
-          (println (format "\nO comando [%s] não existe na base de dados." (or command-name ""))))))))
+          (println (format "\nO comando [%s] não existe na base de dados." (or command-name "")))))
+      (println (format "\nComando [%s] NÃO removido." command-name)))))
 
 
 (defn upd-command
@@ -117,7 +120,7 @@
               raw-command-help (utils/prompted-input (format "Help do comando (man (default) | --help | --outra-opção) \n  [%s]: " doc))
               command-help (if (= raw-command-help "") doc raw-command-help)
               raw-util-name (utils/prompted-input (format
-                                                   "Nome do utilitário (ou :vazio para não dar um nome diferente do comando) \n  [%s]: " (or name ":vazio")))
+                                                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [%s]: " (or name ":vazio")))
               util-name (case raw-util-name
                           "" name
                           ":vazio" nil
@@ -164,19 +167,22 @@
 (defn find-command
   "Find a command containing a query-string on the fields selected."
   [args]
-  (let [query-string (get-query-string args)
-        raw-fields-string (utils/prompted-input "Digite os campos a serem pesquisados (<Enter>: command description): ")
-        fields-string (if (= raw-fields-string "") "command description" raw-fields-string)
-        fields (utils/process-string-list fields-string keyword)
-        query-fields (if (some #{:description} fields) (conj fields :name) fields)
-        command-records (db/find-command-records query-string query-fields)
-        larger-cmd-size (get-larger-cmd-size command-records)]
-    (println)
-    (if (empty? command-records)
-      (println
-       (format "Não foram encontrados comandos com a palavra [%s] nos campos [%s]." query-string (show-fields fields)))
-      (doseq [command-record command-records]
-        (show-command-record command-record false larger-cmd-size)))))
+  (let [query-string (get-query-string args)]
+    (if (empty? query-string)
+      (println "\nUma palavra de pesquisa deve ser fornecida.")
+      (let [raw-fields-string (utils/prompted-input "\nDigite os campos a serem pesquisados (<Enter>: command description): ")
+            fields-string (if (= raw-fields-string "") "command description" raw-fields-string)
+            fields (utils/process-string-list fields-string keyword)
+            query-fields (if (some #{:description} fields) (conj fields :name) fields)
+            command-records (db/find-command-records query-string query-fields)
+            larger-cmd-size (get-larger-cmd-size command-records)]
+        (if (empty? command-records)
+          (println
+           (format "\nNão foram encontrados comandos com a palavra [%s] nos campos [%s]." query-string (show-fields fields)))
+          (do
+            (println)
+            (doseq [command-record command-records]
+              (show-command-record command-record false larger-cmd-size))))))))
 
 
 (defn debug

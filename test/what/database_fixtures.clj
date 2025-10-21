@@ -12,13 +12,13 @@
   []
   (let [populate-command-sql (sql/format {:insert-into [:command]
                                           :columns [:command :description :doc :name]
-                                          :values [["cmd0" "Description 0" "man" nil]
+                                          :values [["cmd000" "Description 0" "man" nil]
                                                    ["cmd1" "Description 1 (more)" "--help" "Name"]
                                                    ["cmd2" "Description 2" "--another" nil]]})
         populate-url-sql (sql/format {:insert-into [:url]
                                       :columns [:url :command]
-                                      :values [["https://test-url0a" "cmd0"]
-                                               ["https://test-url0b" "cmd0"]
+                                      :values [["https://test-url0a" "cmd000"]
+                                               ["https://test-url0b" "cmd000"]
                                                ["https://test-url2" "cmd2"]]})]
     (sqlite/execute! (str temp-db-file) populate-command-sql)
     (sqlite/execute! (str temp-db-file) populate-url-sql)))

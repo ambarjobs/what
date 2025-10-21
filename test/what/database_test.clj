@@ -13,7 +13,7 @@
 (deftest get-command-records-test
   (testing "Get all command records - Common case"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [{:command "cmd0" :description "Description 0" :doc "man" :name nil}
+      (is (= [{:command "cmd000" :description "Description 0" :doc "man" :name nil}
               {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
               {:command "cmd2" :description "Description 2" :doc "--another" :name nil}]
              (db/get-command-records)))))
@@ -104,8 +104,8 @@
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [result (db/delete-command-record "cmd1")]
         (is (= (:rows-affected result) 1))
-        (is (= nil (db/get-command-record "cmd1")))))
-    (fixtures/reset-database))
+        (is (= nil (db/get-command-record "cmd1"))))
+      (fixtures/reset-database)))
   (testing "Delete a specific command record - Unexisting command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [result (db/delete-command-record "unexisting-cmd")]
@@ -122,14 +122,16 @@
         (let [result (db/update-command-record orig-command "New description" orig-doc orig-name)]
           (is (= (:rows-affected result) 1))
           (is (= {:command orig-command :description "New description" :doc orig-doc :name orig-name}
-                 (db/get-command-record orig-command))))))
+                 (db/get-command-record orig-command))))
+        (fixtures/reset-database)))
     (testing "Update a command record - Existing optional field to null"
       (with-redefs [db/db (str fixtures/temp-db-file)]
         (let [result (db/update-command-record orig-command orig-description orig-doc nil)]
           (is (= (:rows-affected result) 1))
           (is (= {:command orig-command :description orig-description :doc orig-doc :name nil}
-                 (db/get-command-record orig-command)))))))
-  (let [orig-command "cmd0"
+                 (db/get-command-record orig-command))))
+        (fixtures/reset-database))))
+  (let [orig-command "cmd000"
         orig-description "Description 0"
         orig-doc "man"
         orig-name nil
@@ -139,19 +141,22 @@
         (let [result (db/update-command-record orig-command orig-description nil orig-name)]
           (is (= (:rows-affected result) 1))
           (is (= {:command orig-command :description orig-description :doc nil :name orig-name}
-                 (db/get-command-record orig-command))))))
+                 (db/get-command-record orig-command))))
+        (fixtures/reset-database)))
     (testing "Update a command record - Null optional field to null"
       (with-redefs [db/db (str fixtures/temp-db-file)]
         (let [result (db/update-command-record orig-command orig-description orig-doc nil)]
           (is (= (:rows-affected result) 1))
           (is (= {:command orig-command :description orig-description :doc orig-doc :name nil}
-                 (db/get-command-record orig-command))))))
+                 (db/get-command-record orig-command))))
+        (fixtures/reset-database)))
     (testing "Update a command record - Null optional field to not null"
       (with-redefs [db/db (str fixtures/temp-db-file)]
         (let [result (db/update-command-record orig-command orig-description orig-doc new-name)]
           (is (= (:rows-affected result) 1))
           (is (= {:command orig-command :description orig-description :doc orig-doc :name new-name}
-                 (db/get-command-record orig-command))))))))
+                 (db/get-command-record orig-command))))
+        (fixtures/reset-database)))))
 
 
 (deftest get-command-urls-test
@@ -163,7 +168,7 @@
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [{:url "https://test-url0a"}
               {:url "https://test-url0b"}]
-             (db/get-command-urls "cmd0")))))
+             (db/get-command-urls "cmd000")))))
   (testing "Get command URLs - No URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [] (db/get-command-urls "cmd1")))))
@@ -227,19 +232,19 @@
       (is (= [] (db/find-command-records "cmd1" [:description :name])))))
   (testing "Find query string - Existing string in multiple records - All fields"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [{:command "cmd0" :description "Description 0" :name nil}
+      (is (= [{:command "cmd000" :description "Description 0" :name nil}
               {:command "cmd1" :description "Description 1 (more)" :name "Name"}
               {:command "cmd2" :description "Description 2" :name nil}]
              (db/find-command-records "Description" [:command :description :name])))))
   (testing "Find query string - Existing string in multiple records - Some fields"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [{:command "cmd0" :description "Description 0" :name nil}
+      (is (= [{:command "cmd000" :description "Description 0" :name nil}
               {:command "cmd1" :description "Description 1 (more)" :name "Name"}
               {:command "cmd2" :description "Description 2" :name nil}]
              (db/find-command-records "Description" [:description :name])))))
   (testing "Find query string - Existing string in multiple records - Additional invalid fields"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [{:command "cmd0" :description "Description 0" :name nil}
+      (is (= [{:command "cmd000" :description "Description 0" :name nil}
               {:command "cmd1" :description "Description 1 (more)" :name "Name"}
               {:command "cmd2" :description "Description 2" :name nil}]
              (db/find-command-records "Description" [:command :description :name :invalid])))))
@@ -248,7 +253,7 @@
       (is (= [] (db/find-command-records "Description" [:command :name])))))
   (testing "Find query string - Empty query string"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [{:command "cmd0" :description "Description 0" :name nil}
+      (is (= [{:command "cmd000" :description "Description 0" :name nil}
               {:command "cmd1" :description "Description 1 (more)" :name "Name"}
               {:command "cmd2" :description "Description 2" :name nil}]
              (db/find-command-records "" [:command :description :name])))))
