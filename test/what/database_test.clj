@@ -15,7 +15,7 @@
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [{:command "cmd000" :description "Description 0" :doc "man" :name nil}
               {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
-              {:command "cmd2" :description "Description 2" :doc "--another" :name nil}]
+              {:command "cmd2" :description "Description 2" :doc nil :name nil}]
              (db/get-command-records)))))
   (testing "Get all command records - Empty database"
     (sqlite/execute! (str fixtures/temp-db-file) (sql/format {:delete-from :command}))
@@ -30,10 +30,10 @@
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
              (db/get-command-record "cmd1")))))
-  (testing "Get the record corresponding specific command - Unexisting command"
+  (testing "Get the record corresponding specific command - Non-existent command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= nil
-             (db/get-command-record "unexisting-cmd")))))
+             (db/get-command-record "non-existent-cmd")))))
   (testing "Get the record corresponding specific command - Empty database"
     (sqlite/execute! (str fixtures/temp-db-file) (sql/format {:delete-from :command}))
     (with-redefs [db/db (str fixtures/temp-db-file)]
@@ -106,9 +106,9 @@
         (is (= (:rows-affected result) 1))
         (is (= nil (db/get-command-record "cmd1"))))
       (fixtures/reset-database)))
-  (testing "Delete a specific command record - Unexisting command"
+  (testing "Delete a specific command record - Non-existent command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (let [result (db/delete-command-record "unexisting-cmd")]
+      (let [result (db/delete-command-record "non-existent-cmd")]
         (is (= (:rows-affected result) 0))))))
 
 
@@ -172,9 +172,9 @@
   (testing "Get command URLs - No URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [] (db/get-command-urls "cmd1")))))
-  (testing "Get command URLs - Unexisting command"
+  (testing "Get command URLs - Non-existent command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [] (db/get-command-urls "unexisting-cmd"))))))
+      (is (= [] (db/get-command-urls "non-existent-cmd"))))))
 
 
 (deftest find-command-records-test
@@ -221,12 +221,12 @@
   (testing "Find query string - Existing string partial - No field"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [] (db/find-command-records "Description" [])))))
-  (testing "Find query string - Unexisting string - All fields"
+  (testing "Find query string - Non-existent string - All fields"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [] (db/find-command-records "unexisting" [:command :description :name])))))
-  (testing "Find query string - Unexisting string - Some fields"
+      (is (= [] (db/find-command-records "non-existent" [:command :description :name])))))
+  (testing "Find query string - Non-existent string - Some fields"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [] (db/find-command-records "unexisting" [:description :name])))))
+      (is (= [] (db/find-command-records "non-existent" [:description :name])))))
   (testing "Find query string - Not found string - Some fields"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [] (db/find-command-records "cmd1" [:description :name])))))

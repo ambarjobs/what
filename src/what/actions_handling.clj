@@ -78,7 +78,7 @@
     (if (empty? command-name)
       (println "\nO nome do comando deve ser fornecido.")
       (let [command-description (utils/prompted-input "Descrição do comando: ")
-            raw-command-help (utils/prompted-input "Help do comando (man (default) | --help | --outra-opção): ")
+            raw-command-help (utils/prompted-input "Help do comando (man (default) | --help | :vazio para nulo): ")
             command-help (if (= raw-command-help "") "man" raw-command-help)
             raw-util-name (utils/prompted-input "Nome do utilitário (se diferente do nome do comando): ")
             util-name (if (= raw-util-name "") nil raw-util-name)]
@@ -117,8 +117,11 @@
         (let [{:keys [description doc name]} result
               raw-command-description (utils/prompted-input (format "Descrição do comando \n  [%s]: " description))
               command-description (if (= raw-command-description "") description raw-command-description)
-              raw-command-help (utils/prompted-input (format "Help do comando (man (default) | --help | --outra-opção) \n  [%s]: " doc))
-              command-help (if (= raw-command-help "") doc raw-command-help)
+              raw-command-help (utils/prompted-input (format "Help do comando (man (default) | --help | :vazio para nulo) \n  [%s]: " (or doc ":vazio")))
+              command-help (case raw-command-help
+                             "" doc
+                             ":vazio" nil
+                             raw-command-help)
               raw-util-name (utils/prompted-input (format
                                                    "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [%s]: " (or name ":vazio")))
               util-name (case raw-util-name
@@ -139,11 +142,12 @@
         result (db/get-command-record command-name)
         {:keys [command doc]} result]
     (if (some? command)
-      (if (= doc "man")
-        (proc/shell "man" command)
+      (case doc
+        "man" (proc/shell "man" command)
+        nil (println (format "\nNão existe indicação de documentação para o comando [%s] na base de dados." command))
         (let [cmd-result (proc/shell {:out :string :continue true} command doc)]
           (proc/shell {:in (:out cmd-result) :continue true} (:pager-cmd config-data))))
-      (println (format "Comando [%s] não encontrado na base de dados." (or command-name ""))))))
+      (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 
 (defn get-command-urls
@@ -155,7 +159,7 @@
     (if (some? result)
       (doseq [url command-urls]
         (println url))
-      (println (format "Comando [%s] não encontrado na base de dados." (or command-name ""))))))
+      (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 
 (defn show-fields

@@ -1,5 +1,6 @@
 (ns what.actions-handling-test
-  (:require [clojure.test :refer [deftest is testing use-fixtures]]
+  (:require [babashka.process :as proc]
+            [clojure.test :refer [deftest is testing use-fixtures]]
             [what.actions-handling :as actions]
             [what.database :as db]
             [what.database-fixtures :as fixtures]))
@@ -43,7 +44,7 @@
   (testing "Add a new command to the database - All fields provided"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Descrição do comando: "
-                  "Help do comando (man (default) | --help | --outra-opção): "
+                  "Help do comando (man (default) | --help | :vazio para nulo): "
                   "Nome do utilitário (se diferente do nome do comando): \n"
                   "O comando [new-cmd] foi adicionado com sucesso.\n")
              (with-out-str
@@ -54,7 +55,7 @@
   (testing "Add a new command to the database - Optional fields with default values"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Descrição do comando: "
-                  "Help do comando (man (default) | --help | --outra-opção): "
+                  "Help do comando (man (default) | --help | :vazio para nulo): "
                   "Nome do utilitário (se diferente do nome do comando): \n"
                   "O comando [new-cmd] foi adicionado com sucesso.\n")
              (with-out-str
@@ -66,7 +67,7 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite o nome do comando: "
                   "Descrição do comando: "
-                  "Help do comando (man (default) | --help | --outra-opção): "
+                  "Help do comando (man (default) | --help | :vazio para nulo): "
                   "Nome do utilitário (se diferente do nome do comando): \n"
                   "O comando [new-cmd] foi adicionado com sucesso.\n")
              (with-out-str
@@ -85,7 +86,7 @@
   (testing "Add a new command to the database - Pre-existent command"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Descrição do comando: "
-                  "Help do comando (man (default) | --help | --outra-opção): "
+                  "Help do comando (man (default) | --help | :vazio para nulo): "
                   "Nome do utilitário (se diferente do nome do comando): \n"
                   "O comando [cmd000] já existe na base de dados.\n")
              (with-out-str
@@ -147,12 +148,12 @@
              (with-out-str
                (with-in-str "\ns" (actions/rm-command nil)))))
       (fixtures/reset-database)))
-  (testing "Remove a command from database - Inexisting command"
+  (testing "Remove a command from database - Non-existent command"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
-      (is (= (str "Deseja realmente REMOVER o comando [inexisting-cmd]? (s/N): "
-                  "\nO comando [inexisting-cmd] não existe na base de dados.\n")
+      (is (= (str "Deseja realmente REMOVER o comando [non-existent-cmd]? (s/N): "
+                  "\nO comando [non-existent-cmd] não existe na base de dados.\n")
              (with-out-str
-               (with-in-str "s" (actions/rm-command {:opts {:command "inexisting-cmd"}})))))
+               (with-in-str "s" (actions/rm-command {:opts {:command "non-existent-cmd"}})))))
       (fixtures/reset-database))))
 
 
@@ -161,7 +162,7 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--help]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
                   "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
@@ -169,11 +170,11 @@
       (is (= {:command "cmd1" :description "New description" :doc "--new" :name "New name"}
              (db/get-command-record "cmd1")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Existing command - Same values explicitly for all fields"
+  (testing "Update a command on database - Existing command - Keep values explicitly for all fields"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--help]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
                   "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
@@ -181,11 +182,11 @@
       (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
              (db/get-command-record "cmd1")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Existing command - Same values using default values for all fields"
+  (testing "Update a command on database - Existing command - Keep values using default values for all fields"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--help]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
                   "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
@@ -197,7 +198,7 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--help]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
                   "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
@@ -209,7 +210,7 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--help]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
                   "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
@@ -221,7 +222,7 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--help]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
                   "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
@@ -233,29 +234,205 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 2]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--another]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [:vazio]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [:vazio]: "
                   "\nO comando [cmd2] foi atualizado com sucesso.\n")
              (with-out-str
                (with-in-str "\n\n\n" (actions/upd-command {:opts {:command "cmd2"}})))))
-      (is (= {:command "cmd2" :description "Description 2" :doc "--another" :name nil}
+      (is (= {:command "cmd2" :description "Description 2" :doc nil :name nil}
              (db/get-command-record "cmd2")))
       (fixtures/reset-database)))
   (testing "Update a command on database - Existing command - Modifying originaly not null `name`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 2]: "
-                  "Help do comando (man (default) | --help | --outra-opção) \n  [--another]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [:vazio]: "
                   "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [:vazio]: "
                   "\nO comando [cmd2] foi atualizado com sucesso.\n")
              (with-out-str
                (with-in-str "\n\nNew name\n" (actions/upd-command {:opts {:command "cmd2"}})))))
-      (is (= {:command "cmd2" :description "Description 2" :doc "--another" :name "New name"}
+      (is (= {:command "cmd2" :description "Description 2" :doc nil :name "New name"}
              (db/get-command-record "cmd2")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Inexisting command"
+  (testing "Update a command on database - Existing command - Keeping not null `doc`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
-      (is (= "\nO comando [inexisting-cmd] não existe na base de dados.\n"
+      (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
+                  "Descrição do comando \n  [Description 1 (more)]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
+                  "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
+                  "\nO comando [cmd1] foi atualizado com sucesso.\n")
              (with-out-str
-               (with-in-str "\n\nNew name\n" (actions/upd-command {:opts {:command "inexisting-cmd"}})))))
+               (with-in-str "\n\n\n" (actions/upd-command {:opts {:command "cmd1"}})))))
+      (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
+             (db/get-command-record "cmd1")))
+      (fixtures/reset-database)))
+  (testing "Update a command on database - Existing command - Nulling originaly not null `doc`"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
+                  "Descrição do comando \n  [Description 1 (more)]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [--help]: "
+                  "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [Name]: "
+                  "\nO comando [cmd1] foi atualizado com sucesso.\n")
+             (with-out-str
+               (with-in-str "\n:vazio\n\n" (actions/upd-command {:opts {:command "cmd1"}})))))
+      (is (= {:command "cmd1" :description "Description 1 (more)" :doc nil :name "Name"}
+             (db/get-command-record "cmd1")))
+      (fixtures/reset-database)))
+  (testing "Update a command on database - Existing command - Keeping null `doc`"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
+                  "Descrição do comando \n  [Description 2]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [:vazio]: "
+                  "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [:vazio]: "
+                  "\nO comando [cmd2] foi atualizado com sucesso.\n")
+             (with-out-str
+               (with-in-str "\n\n\n" (actions/upd-command {:opts {:command "cmd2"}})))))
+      (is (= {:command "cmd2" :description "Description 2" :doc nil :name nil}
+             (db/get-command-record "cmd2")))
+      (fixtures/reset-database)))
+  (testing "Update a command on database - Existing command - Modifying originaly not null `doc`"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
+                  "Descrição do comando \n  [Description 2]: "
+                  "Help do comando (man (default) | --help | :vazio para nulo) \n  [:vazio]: "
+                  "Nome do utilitário (<Enter> para manter o nome ou :vazio para nome nulo) \n  [:vazio]: "
+                  "\nO comando [cmd2] foi atualizado com sucesso.\n")
+             (with-out-str
+               (with-in-str "\n--new\n\n" (actions/upd-command {:opts {:command "cmd2"}})))))
+      (is (= {:command "cmd2" :description "Description 2" :doc "--new" :name nil}
+             (db/get-command-record "cmd2")))
+      (fixtures/reset-database)))
+  (testing "Update a command on database - Non-existent command"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= "\nO comando [non-existent-cmd] não existe na base de dados.\n"
+             (with-out-str
+               (with-in-str "\n\nNew name\n" (actions/upd-command {:opts {:command "non-existent-cmd"}})))))
       (fixtures/reset-database))))
+
+
+(deftest doc-command-test
+  (testing "Calls command's docs - Option"
+    (with-redefs [db/db  (str fixtures/temp-db-file)
+                  proc/shell fixtures/mock-shell]
+      (is (= '("cmd1" "--help")
+             (actions/doc-command {:opts {:command "cmd1"}})))))
+  (testing "Calls command's docs - Man page"
+    (with-redefs [db/db  (str fixtures/temp-db-file)
+                  proc/shell fixtures/mock-shell]
+      (is (= '("man" "cmd000")
+             (actions/doc-command {:opts {:command "cmd000"}})))))
+  (testing "Calls command's docs - No doc"
+    (with-redefs [db/db  (str fixtures/temp-db-file)
+                  proc/shell fixtures/mock-shell]
+      (is (= "\nNão existe indicação de documentação para o comando [cmd2] na base de dados.\n"
+             (with-out-str
+               (actions/doc-command {:opts {:command "cmd2"}}))))))
+  (testing "Calls command's docs - Non-existent command"
+    (with-redefs [db/db  (str fixtures/temp-db-file)
+                  proc/shell fixtures/mock-shell]
+      (is (= "\nComando [non-existent-cmd] não encontrado na base de dados.\n"
+             (with-out-str
+               (actions/doc-command {:opts {:command "non-existent-cmd"}})))))))
+
+
+(deftest get-command-urls-test
+  (testing "Get the ULSs associated with a command - Multiple URLs"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= "https://test-url0a\nhttps://test-url0b\n"
+             (with-out-str (actions/get-command-urls {:opts {:command "cmd000"}}))))))
+  (testing "Get the ULSs associated with a command - Single URL"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= "https://test-url2\n"
+             (with-out-str (actions/get-command-urls {:opts {:command "cmd2"}}))))))
+  (testing "Get the ULSs associated with a command - No URL"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= nil
+             (actions/get-command-urls {:opts {:command "cmd1"}})))))
+  (testing "Get the ULSs associated with a command - Non-existent command"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= "\nComando [non-existent-cmd] não encontrado na base de dados.\n"
+             (with-out-str (actions/get-command-urls {:opts {:command "non-existent-cmd"}})))))))
+
+
+(deftest ind-command-records-test
+  (testing "Find a command containing a query-string - All fields by default - Find one in :command"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd000:  Description 0\n")
+             (with-out-str
+               (with-in-str "\n" (actions/find-command {:opts {:query-string "000"}})))))))
+  (testing "Find a command containing a query-string - All fields by default - Find one in :description"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd2:  Description 2\n")
+             (with-out-str
+               (with-in-str "\n" (actions/find-command {:opts {:query-string "tion 2"}})))))))
+  (testing "Find a command containing a query-string - All fields by default - Find one in :name"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd1:  [Name] Description 1 (more)\n")
+             (with-out-str
+               (with-in-str "\n" (actions/find-command {:opts {:query-string "Name"}})))))))
+  (testing "Find a command containing a query-string - Search :command field - Find one"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd000:  Description 0\n")
+             (with-out-str
+               (with-in-str "command\n" (actions/find-command {:opts {:query-string "000"}})))))))
+  (testing "Find a command containing a query-string - Search :description field - Find one"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd2:  Description 2\n")
+             (with-out-str
+               (with-in-str "description\n" (actions/find-command {:opts {:query-string "tion 2"}})))))))
+  (testing "Find a command containing a query-string - Field :name is part of :description - Find one"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd1:  [Name] Description 1 (more)\n")
+             (with-out-str
+               (with-in-str "description\n" (actions/find-command {:opts {:query-string "Name"}})))))))
+  (testing "Find a command containing a query-string - Search is case insensitive"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd1:  [Name] Description 1 (more)\n")
+             (with-out-str
+               (with-in-str "description\n" (actions/find-command {:opts {:query-string "name"}})))))))
+  (testing "Find a command containing a query-string - Search multiple fields - Find one"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\ncmd1:  [Name] Description 1 (more)\n")
+             (with-out-str
+               (with-in-str "command description\n" (actions/find-command {:opts {:query-string "more"}})))))))
+  (testing "Find a command containing a query-string - All fields - String not found"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\nNão foram encontrados comandos com a palavra [non-existent] nos campos [command description].\n")
+             (with-out-str
+               (with-in-str "\n" (actions/find-command {:opts {:query-string "non-existent"}})))))))
+  (testing "Find a command containing a query-string - Specific field - String not found"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "
+                  "\nNão foram encontrados comandos com a palavra [cmd] nos campos [description].\n")
+             (with-out-str
+               (with-in-str "description\n" (actions/find-command {:opts {:query-string "cmd"}})))))))
+  (testing "Find a command containing a query-string - All fields by default - Find multiple"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): \n"
+                  "cmd000:  Description 0\n"
+                  "  cmd1:  [Name] Description 1 (more)\n"
+                  "  cmd2:  Description 2\n")
+             (with-out-str
+               (with-in-str "\n" (actions/find-command {:opts {:query-string "cmd"}})))))))
+  (testing "Find a command containing a query-string - Specific field - Find multiple"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): \n"
+                  "cmd000:  Description 0\n"
+                  "  cmd1:  [Name] Description 1 (more)\n"
+                  "  cmd2:  Description 2\n")
+             (with-out-str
+               (with-in-str "description\n" (actions/find-command {:opts {:query-string "Description"}})))))))
+  (testing "Find a command containing a query-string - No query string"
+    (with-redefs [db/db  (str fixtures/temp-db-file)]
+      (is (= "\nUma palavra de pesquisa deve ser fornecida.\n"
+             (with-out-str
+               (with-in-str "description\n" (actions/find-command {:opts {:query-string ""}}))))))))

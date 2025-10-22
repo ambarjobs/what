@@ -8,13 +8,13 @@
 
 
 (defn populate-database
-  "Populate tes database with default records."
+  "Populate test database with default records."
   []
   (let [populate-command-sql (sql/format {:insert-into [:command]
                                           :columns [:command :description :doc :name]
                                           :values [["cmd000" "Description 0" "man" nil]
                                                    ["cmd1" "Description 1 (more)" "--help" "Name"]
-                                                   ["cmd2" "Description 2" "--another" nil]]})
+                                                   ["cmd2" "Description 2" nil nil]]})
         populate-url-sql (sql/format {:insert-into [:url]
                                       :columns [:url :command]
                                       :values [["https://test-url0a" "cmd000"]
@@ -59,3 +59,12 @@
   (populate-database)
   (test-function)
   (clear-database))
+
+
+(defn mock-shell
+  "Mock function to simulate a call to babashka.process.shell and return it's arguments."
+  [& args]
+  (case (first args)
+    "man" args
+    {:out :string :continue true} {:out (rest args)}
+    (:in (first args))))
