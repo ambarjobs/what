@@ -43,9 +43,9 @@
   ([command-record new-line? cmd-size] (let [{:keys [command description name]} command-record
                                              new-line (if new-line? "\n" "")
                                              cmd-format-str (str "%s%" cmd-size "s:  %s")
-                                             formated-description (format-description description name)]
+                                             formatted-description (format-description description name)]
                                          (when (some? command)
-                                           (println (format cmd-format-str new-line command formated-description))))))
+                                           (println (format cmd-format-str new-line command formatted-description))))))
 
 
 ;; ---------------------------------------------------------------------------------------------------------------------

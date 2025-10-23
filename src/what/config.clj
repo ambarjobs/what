@@ -11,7 +11,7 @@
 
 
 (defn load-config
-  "Load configuration from comfiguration file."
+  "Load configuration from configuration file."
   []
   (let [default-config {:pager-cmd "more"}
         config-content (read-config-file configuration-file)]

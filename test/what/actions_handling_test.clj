@@ -34,7 +34,7 @@
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= "Digite o nome do comando: \nComando [] não encontrado na base de dados.\n"
              (with-out-str (with-in-str "" (actions/show-command-info nil)))))))
-  (testing "Show information of specific command - Unexistent command name"
+  (testing "Show information of specific command - Inexistent command name"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= "\nComando [inexistent-cmd] não encontrado na base de dados.\n"
              (with-out-str (actions/show-command-info {:opts {:command "inexistent-cmd"}})))))))
@@ -218,7 +218,7 @@
       (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
              (db/get-command-record "cmd1")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Existing command - Nulling originaly not null `name`"
+  (testing "Update a command on database - Existing command - Nulling originally not null `name`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
@@ -242,7 +242,7 @@
       (is (= {:command "cmd2" :description "Description 2" :doc nil :name nil}
              (db/get-command-record "cmd2")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Existing command - Modifying originaly not null `name`"
+  (testing "Update a command on database - Existing command - Modifying originally not null `name`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 2]: "
@@ -266,7 +266,7 @@
       (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
              (db/get-command-record "cmd1")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Existing command - Nulling originaly not null `doc`"
+  (testing "Update a command on database - Existing command - Nulling originally not null `doc`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 1 (more)]: "
@@ -290,7 +290,7 @@
       (is (= {:command "cmd2" :description "Description 2" :doc nil :name nil}
              (db/get-command-record "cmd2")))
       (fixtures/reset-database)))
-  (testing "Update a command on database - Existing command - Modifying originaly not null `doc`"
+  (testing "Update a command on database - Existing command - Modifying originally not null `doc`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite os novos valores, ou <Enter> para manter os valores atuais (mostrados entre colchetes).\n\n"
                   "Descrição do comando \n  [Description 2]: "

@@ -3,7 +3,7 @@
 
 
 (defn prompted-input
-  "Presents a propmt and reads a user input."
+  "Presents a prompt and reads a user input."
   [prompt]
   (print prompt)
   (flush)

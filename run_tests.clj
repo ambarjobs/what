@@ -2,9 +2,9 @@
 
 (require '[clojure.test :as test])
 
-(require '[what.utils-test])
-(require '[what.database-test])
 (require '[what.actions-handling-test])
+(require '[what.database-test])
+(require '[what.utils-test])
 
 
 (def test-results
