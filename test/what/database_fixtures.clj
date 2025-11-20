@@ -41,13 +41,25 @@
 (defn database-creation-fixture
   [test-function]
   (let [create-command-table-sql (sql/format {:create-table :command
-                                              :with-columns [[:command [:varchar 255] :unique [:not nil]]
-                                                             [:description [:varchar 255] [:not nil]]
-                                                             [:doc [:varchar 255]]
-                                                             [:name [:varchar 255]]]})
+                                              :with-columns [[:command [:string 255] :unique [:not nil]]
+                                                             [:description :text [:not nil]]
+                                                             [:doc [:string 255]]
+                                                             [:name [:string 255]]]})
+        ;; CREATE TABLE command (command STRING (255) UNIQUE NOT NULL,
+        ;;                       description TEXT NOT NULL,
+        ;;                       doc STRING (255),
+        ;;                       name STRING (255));
+
         create-url-table-sql (sql/format {:create-table :url
-                                          :with-columns [[:url [:varchar 255] [:not nil]]
-                                                         [:command [:varchar 255] [:not nil]]]})]
+                                          :with-columns [[:url :text [:not nil] :on-conflict :fail]
+                                                         [:command [:string 255] [:not nil] :on-conflict :fail]
+                                                         [[:constraint :unique-url]
+                                                          :unique [:composite :url :command]
+                                                          :on-conflict :rollback]]})]
+        ;; CREATE TABLE url (url TEXT NOT NULL ON CONFLICT FAIL,
+        ;;                   command STRING (255) NOT NULL ON CONFLICT FAIL,
+        ;;                   CONSTRAINT unique_url UNIQUE (url, command) ON CONFLICT ROLLBACK);
+
     (sqlite/execute! (str temp-db-file) create-command-table-sql)
     (sqlite/execute! (str temp-db-file) create-url-table-sql)
     (test-function)

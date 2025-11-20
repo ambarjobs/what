@@ -58,7 +58,7 @@
     (sqlite/execute! db sql-sentence)))
 
 
-(defn get-command-urls
+(defn get-command-urls-records
   "Get URLs linked to a command."
   [command]
   (let [sql-sentence (sql/format {:select [:u.url]
@@ -66,6 +66,15 @@
                                   :join [[:url :u] [:= :c.command :u.command]]
                                   :where [:= :c.command command]})]
     (sqlite/query db sql-sentence)))
+
+
+(defn add-command-url-record
+  "Add an URL to a command."
+  [command url]
+  (let [sql-sentence (sql/format {:insert-into [:url]
+                                  :columns [:url :command]
+                                  :values [[url command]]})]
+    (sqlite/execute! db sql-sentence)))
 
 
 (defn find-command-records

@@ -28,6 +28,14 @@
     (or raw-command-name (utils/prompted-input "Digite o nome do comando: "))))
 
 
+(defn get-url
+  "Get url from args or ask for one."
+  [args]
+  (let [{:keys [opts]} args
+        {raw-command-name :url} opts]
+    (or raw-command-name (utils/prompted-input "Digite o URL: "))))
+
+
 (defn get-query-string
   "Get a query string from args or ask for one."
   [args]
@@ -155,10 +163,24 @@
   [args]
   (let [command-name (get-command-name args)
         result (db/get-command-record command-name)
-        command-urls (map #(:url %) (db/get-command-urls command-name))]
+        command-urls (map #(:url %) (db/get-command-urls-records command-name))]
     (if (some? result)
       (doseq [url command-urls]
         (println url))
+      (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
+
+
+(defn add-command-url
+  "Add an URLs to a command."
+  [args]
+  (let [command-name (get-command-name args)
+        url (get-url args)
+        result (db/get-command-record command-name)
+        command-urls (map #(:url %) (db/get-command-urls-records command-name))]
+    (if (some? result)
+      (if (some #{url} command-urls)
+        (println (format "\nO comando [%s] já possui a url [%s] associada a ele." command-name url))
+        (db/add-command-url-record command-name url))
       (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 

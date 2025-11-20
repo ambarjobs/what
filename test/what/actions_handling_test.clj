@@ -354,7 +354,35 @@
              (with-out-str (actions/get-command-urls {:opts {:command "non-existent-cmd"}})))))))
 
 
-(deftest ind-command-records-test
+(deftest add-command-url-test
+  (testing "Add an URL to the command - First URL."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd1"
+            test-url "https://test-url.org"]
+        (actions/add-command-url {:opts {:command command :url test-url}})
+        (is (= [{:url test-url}]
+               (db/get-command-urls-records command))))
+      (fixtures/reset-database)))
+  (testing "Add an URL to the command - Additional URL."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            test-url "https://test-url.org"]
+        (actions/add-command-url {:opts {:command command :url test-url}})
+        (is (= [{:url "https://test-url2"} {:url test-url}]
+               (db/get-command-urls-records command))))
+      (fixtures/reset-database)))
+  (testing "Add an URL to the command - Existing URL."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            test-url "https://test-url2"]
+        (is (= "\nO comando [cmd2] já possui a url [https://test-url2] associada a ele.\n"
+               (with-out-str (actions/add-command-url {:opts {:command command :url test-url}}))))
+        (is (= [{:url test-url}]
+               (db/get-command-urls-records command))))
+      (fixtures/reset-database))))
+
+
+(deftest find-command-records-test
   (testing "Find a command containing a query-string - All fields by default - Find one in :command"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "\nDigite os campos a serem pesquisados (<Enter>: command description): "

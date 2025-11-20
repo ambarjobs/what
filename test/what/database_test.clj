@@ -159,23 +159,53 @@
         (fixtures/reset-database)))))
 
 
-(deftest get-command-urls-test
+(deftest get-command-urls-records-test
   (testing "Get command URLs - Just one URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [{:url "https://test-url2"}]
-             (db/get-command-urls "cmd2")))))
+             (db/get-command-urls-records "cmd2")))))
   (testing "Get command URLs - More than one URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [{:url "https://test-url0a"}
               {:url "https://test-url0b"}]
-             (db/get-command-urls "cmd000")))))
+             (db/get-command-urls-records "cmd000")))))
   (testing "Get command URLs - No URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [] (db/get-command-urls "cmd1")))))
+      (is (= [] (db/get-command-urls-records "cmd1")))))
   (testing "Get command URLs - Non-existent command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
-      (is (= [] (db/get-command-urls "non-existent-cmd"))))))
+      (is (= [] (db/get-command-urls-records "non-existent-cmd"))))))
 
+
+(deftest add-command-url-record-test
+  (testing "Add an URL to a command - First URL"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd1"
+            url "https://test-url.org"]
+        (db/add-command-url-record command url)
+        (is (= [{:url url}]
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Add an URL to a command - Additional URL"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            url "https://test-url.org"]
+        (db/add-command-url-record command url)
+        (is (= [{:url "https://test-url2"}
+                {:url url}]
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Add an URL to a command - Existing URL"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            url "https://test-url2"]
+        (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                              #"UNIQUE constraint failed: url.url, url.command"
+                              (db/add-command-url-record command url)))
+        (is (= [{:url url}]
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  )
 
 (deftest find-command-records-test
   (testing "Find query string - Existing string in command complete - All fields"
