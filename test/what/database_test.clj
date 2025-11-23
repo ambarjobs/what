@@ -160,25 +160,25 @@
 
 
 (deftest get-command-urls-records-test
-  (testing "Get command URLs - Just one URL"
+  (testing "Get URLs associated with a command - Just one URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [{:url "https://test-url2"}]
              (db/get-command-urls-records "cmd2")))))
-  (testing "Get command URLs - More than one URL"
+  (testing "Get URLs associated with a command - More than one URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [{:url "https://test-url0a"}
               {:url "https://test-url0b"}]
              (db/get-command-urls-records "cmd000")))))
-  (testing "Get command URLs - No URL"
+  (testing "Get URLs associated with a command - No URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [] (db/get-command-urls-records "cmd1")))))
-  (testing "Get command URLs - Non-existent command"
+  (testing "Get URLs associated with a command - Non-existent command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (is (= [] (db/get-command-urls-records "non-existent-cmd"))))))
 
 
 (deftest add-command-url-record-test
-  (testing "Add an URL to a command - First URL"
+  (testing "Add an URL association with a command - First URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd1"
             url "https://test-url.org"]
@@ -186,7 +186,7 @@
         (is (= [{:url url}]
                (db/get-command-urls-records command)))))
     (fixtures/reset-database))
-  (testing "Add an URL to a command - Additional URL"
+  (testing "Add an URL association with a command - Additional URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd2"
             url "https://test-url.org"]
@@ -195,7 +195,7 @@
                 {:url url}]
                (db/get-command-urls-records command)))))
     (fixtures/reset-database))
-  (testing "Add an URL to a command - Existing URL"
+  (testing "Add an URL association with a command - Existing URL"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd2"
             url "https://test-url2"]
@@ -208,7 +208,7 @@
 
 
 (deftest remove-command-url-record-test
-  (testing "Remove an URL from a command - Existing multiple URLs"
+  (testing "Remove an URL association with a command - Existing multiple URLs"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd000"
             url "https://test-url0a"]
@@ -216,7 +216,7 @@
         (is (= [{:url "https://test-url0b"}]
                (db/get-command-urls-records command)))))
     (fixtures/reset-database))
-  (testing "Remove an URL from a command - Just one existing URLs"
+  (testing "Remove an URL association with a command - Just one existing URLs"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd2"
             url "https://test-url2"]
@@ -224,7 +224,7 @@
         (is (= []
                (db/get-command-urls-records command)))))
     (fixtures/reset-database))
-  (testing "Remove an URL from a command - Nonexistent URLs"
+  (testing "Remove an URL association with a command - Nonexistent URLs"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd2"
             url "https://nonexistent-url"]
@@ -232,11 +232,36 @@
         (is (= [{:url "https://test-url2"}]
                (db/get-command-urls-records command)))))
     (fixtures/reset-database))
-  (testing "Remove an URL from a command - Nonexistent command"
+  (testing "Remove an URL association with a command - Nonexistent command"
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd3"
             url "https://test-url3"]
         (db/remove-command-url-record command url)
+        (is (= []
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  )
+
+
+(deftest remove-command-urls-records-test
+  (testing "Remove all URLs associated with a command - Existing multiple URLs"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd000"]
+        (db/remove-command-urls-records command)
+        (is (= []
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Remove all URLs associated with a command - Command with no URLs"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd1"]
+        (db/remove-command-urls-records command)
+        (is (= []
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Remove all URLs associated with a command - Nonexistent command"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd3"]
+        (db/remove-command-urls-records command)
         (is (= []
                (db/get-command-urls-records command)))))
     (fixtures/reset-database))

@@ -109,7 +109,9 @@
     (if (some #{confirmation} ["s" "S"])
       (let [result (db/delete-command-record command-name)]
         (if (= (:rows-affected result) 1)
-          (println (format "\nComando [%s] removido com sucesso." command-name))
+          (doall
+           (db/remove-command-urls-records command-name)
+           (println (format "\nComando [%s] removido com sucesso." command-name)))
           (println (format "\nO comando [%s] não existe na base de dados." (or command-name "")))))
       (println (format "\nComando [%s] NÃO removido." command-name)))))
 

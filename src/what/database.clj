@@ -59,7 +59,7 @@
 
 
 (defn get-command-urls-records
-  "Get URLs linked to a command."
+  "Get URLs associated with a command."
   [command]
   (let [sql-sentence (sql/format {:select [:u.url]
                                   :from [[:command :c]]
@@ -69,7 +69,7 @@
 
 
 (defn add-command-url-record
-  "Add an URL to a command."
+  "Add an URL association with a command."
   [command url]
   (let [sql-sentence (sql/format {:insert-into [:url]
                                   :columns [:url :command]
@@ -78,10 +78,18 @@
 
 
 (defn remove-command-url-record
-  "Remove an URL from a command."
+  "Remove an URL association with a command."
   [command url]
   (let [sql-sentence (sql/format {:delete-from [:url]
                                   :where [:and [:= :command command] [:= :url url]]})]
+    (sqlite/execute! db sql-sentence)))
+
+
+(defn remove-command-urls-records
+  "Remove all URL associations with a command."
+  [command]
+  (let [sql-sentence (sql/format {:delete-from [:url]
+                                  :where [:= :command command]})]
     (sqlite/execute! db sql-sentence)))
 
 

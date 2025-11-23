@@ -99,46 +99,51 @@
 (deftest rm-command-test
   (testing "Remove a command from database - Existing command - Lower case confirmation"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
-      (is (= (str "Deseja realmente REMOVER o comando [cmd1]? (s/N): "
-                  "\nComando [cmd1] removido com sucesso.\n")
+      (is (= (str "Deseja realmente REMOVER o comando [cmd2]? (s/N): "
+                  "\nComando [cmd2] removido com sucesso.\n")
              (with-out-str
-               (with-in-str "s" (actions/rm-command {:opts {:command "cmd1"}})))))
-      (is (= nil (db/get-command-record "cmd1")))
+               (with-in-str "s" (actions/rm-command {:opts {:command "cmd2"}})))))
+      (is (= nil (db/get-command-record "cmd2")))
+      ;; (is (= [] (db/get-command-urls-records "cmd2")))
       (fixtures/reset-database)))
   (testing "Remove a command from database - Existing command - Upper case confirmation"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
-      (is (= (str "Deseja realmente REMOVER o comando [cmd1]? (s/N): "
-                  "\nComando [cmd1] removido com sucesso.\n")
+      (is (= (str "Deseja realmente REMOVER o comando [cmd2]? (s/N): "
+                  "\nComando [cmd2] removido com sucesso.\n")
              (with-out-str
-               (with-in-str "S" (actions/rm-command {:opts {:command "cmd1"}})))))
-      (is (= nil (db/get-command-record "cmd1")))
+               (with-in-str "S" (actions/rm-command {:opts {:command "cmd2"}})))))
+      (is (= nil (db/get-command-record "cmd2")))
+      (is (= [] (db/get-command-urls-records "cmd2")))
       (fixtures/reset-database)))
   (testing "Remove a command from database - Existing command - Explicitly not confirmed with `n`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
-      (is (= (str "Deseja realmente REMOVER o comando [cmd1]? (s/N): "
-                  "\nComando [cmd1] NÃO removido.\n")
+      (is (= (str "Deseja realmente REMOVER o comando [cmd2]? (s/N): "
+                  "\nComando [cmd2] NÃO removido.\n")
              (with-out-str
-               (with-in-str "n" (actions/rm-command {:opts {:command "cmd1"}})))))
-      (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
-             (db/get-command-record "cmd1")))
+               (with-in-str "n" (actions/rm-command {:opts {:command "cmd2"}})))))
+      (is (= {:command "cmd2" :description "Description 2" :doc nil :name nil}
+             (db/get-command-record "cmd2")))
+      (is (= [{:url "https://test-url2"}] (db/get-command-urls-records "cmd2")))
       (fixtures/reset-database)))
   (testing "Remove a command from database - Existing command - Not confirmed with `<Enter>`"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
-      (is (= (str "Deseja realmente REMOVER o comando [cmd1]? (s/N): "
-                  "\nComando [cmd1] NÃO removido.\n")
+      (is (= (str "Deseja realmente REMOVER o comando [cmd2]? (s/N): "
+                  "\nComando [cmd2] NÃO removido.\n")
              (with-out-str
-               (with-in-str "\n" (actions/rm-command {:opts {:command "cmd1"}})))))
-      (is (= {:command "cmd1" :description "Description 1 (more)" :doc "--help" :name "Name"}
-             (db/get-command-record "cmd1")))
+               (with-in-str "\n" (actions/rm-command {:opts {:command "cmd2"}})))))
+      (is (= {:command "cmd2" :description "Description 2" :doc nil :name nil}
+             (db/get-command-record "cmd2")))
+      (is (= [{:url "https://test-url2"}] (db/get-command-urls-records "cmd2")))
       (fixtures/reset-database)))
   (testing "Remove a command from database - No command name provided initially"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
       (is (= (str "Digite o nome do comando: "
-                  "Deseja realmente REMOVER o comando [cmd1]? (s/N): "
-                  "\nComando [cmd1] removido com sucesso.\n")
+                  "Deseja realmente REMOVER o comando [cmd2]? (s/N): "
+                  "\nComando [cmd2] removido com sucesso.\n")
              (with-out-str
-               (with-in-str "cmd1\ns" (actions/rm-command nil)))))
-      (is (= nil (db/get-command-record "cmd1")))
+               (with-in-str "cmd2\ns" (actions/rm-command nil)))))
+      (is (= nil (db/get-command-record "cmd2")))
+      (is (= [] (db/get-command-urls-records "cmd2")))
       (fixtures/reset-database)))
   (testing "Remove a command from database - No command name provided even after prompt"
     (with-redefs [db/db  (str fixtures/temp-db-file)]
