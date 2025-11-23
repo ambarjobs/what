@@ -379,7 +379,14 @@
                (with-out-str (actions/add-command-url {:opts {:command command :url test-url}}))))
         (is (= [{:url test-url}]
                (db/get-command-urls-records command))))
-      (fixtures/reset-database))))
+      (fixtures/reset-database)))
+  (testing "Add an URL to the command - Nonexistent command."
+  (with-redefs [db/db (str fixtures/temp-db-file)]
+    (let [command "cmd3"
+          test-url "https://test-url3"]
+      (is (= "\nComando [cmd3] não encontrado na base de dados.\n"
+             (with-out-str (actions/add-command-url {:opts {:command command :url test-url}})))))
+    (fixtures/reset-database)))  )
 
 
 (deftest remove-command-url-test
