@@ -77,6 +77,14 @@
     (sqlite/execute! db sql-sentence)))
 
 
+(defn remove-command-url-record
+  "Remove an URL from a command."
+  [command url]
+  (let [sql-sentence (sql/format {:delete-from [:url]
+                                  :where [:and [:= :command command] [:= :url url]]})]
+    (sqlite/execute! db sql-sentence)))
+
+
 (defn find-command-records
   "Find the command records which have a query-string on theirs command or description fields."
   [query-string fields]

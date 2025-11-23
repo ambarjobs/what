@@ -23,6 +23,7 @@
    {:cmds ["upd"] :description "       Atualiza a informação de um comando na base de dados." :fn actions/upd-command :opts [:command]}
    {:cmds ["urls"] :description "      Mostra as URLs associadas a um comando." :fn actions/get-command-urls :opts [:command]}
    {:cmds ["add-url"] :description "   Adiciona um URL a um comando." :fn actions/add-command-url :opts [:command :url]}
+   {:cmds ["rm-url"] :description "    Remove um URL de um comando." :fn actions/remove-command-url :opts [:command :url]}
    {:cmds ["help|h|?"] :description "  Mostra o uso do aplicativo."}
    {:cmds ["dbg"] :fn actions/debug}
    ])

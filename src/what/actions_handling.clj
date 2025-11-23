@@ -171,7 +171,7 @@
 
 
 (defn add-command-url
-  "Add an URLs to a command."
+  "Add an URL association to a command."
   [args]
   (let [command-name (get-command-name args)
         url (get-url args)
@@ -179,8 +179,22 @@
         command-urls (map #(:url %) (db/get-command-urls-records command-name))]
     (if (some? result)
       (if (some #{url} command-urls)
-        (println (format "\nO comando [%s] já possui a url [%s] associada a ele." command-name url))
+        (println (format "\nO comando [%s] já possui o URL [%s] associado a ele." command-name url))
         (db/add-command-url-record command-name url))
+      (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
+
+
+(defn remove-command-url
+  "Remove an URL association to a command."
+  [args]
+  (let [command-name (get-command-name args)
+        url (get-url args)
+        result (db/get-command-record command-name)
+        command-urls (map #(:url %) (db/get-command-urls-records command-name))]
+    (if (some? result)
+      (if (some #{url} command-urls)
+          (db/remove-command-url-record command-name url)
+          (println (format "\nO comando [%s] não possui o URL [%s] associado a ele." command-name url)))
       (println (format "\nComando [%s] não encontrado na base de dados." (or command-name ""))))))
 
 

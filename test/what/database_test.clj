@@ -204,8 +204,44 @@
                               (db/add-command-url-record command url)))
         (is (= [{:url url}]
                (db/get-command-urls-records command)))))
+    (fixtures/reset-database)))
+
+
+(deftest remove-command-url-record-test
+  (testing "Remove an URL from a command - Existing multiple URLs"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd000"
+            url "https://test-url0a"]
+        (db/remove-command-url-record command url)
+        (is (= [{:url "https://test-url0b"}]
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Remove an URL from a command - Just one existing URLs"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            url "https://test-url2"]
+        (db/remove-command-url-record command url)
+        (is (= []
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Remove an URL from a command - Nonexistent URLs"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            url "https://nonexistent-url"]
+        (db/remove-command-url-record command url)
+        (is (= [{:url "https://test-url2"}]
+               (db/get-command-urls-records command)))))
+    (fixtures/reset-database))
+  (testing "Remove an URL from a command - Nonexistent command"
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd3"
+            url "https://test-url3"]
+        (db/remove-command-url-record command url)
+        (is (= []
+               (db/get-command-urls-records command)))))
     (fixtures/reset-database))
   )
+
 
 (deftest find-command-records-test
   (testing "Find query string - Existing string in command complete - All fields"

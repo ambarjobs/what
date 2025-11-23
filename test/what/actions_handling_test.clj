@@ -375,10 +375,45 @@
     (with-redefs [db/db (str fixtures/temp-db-file)]
       (let [command "cmd2"
             test-url "https://test-url2"]
-        (is (= "\nO comando [cmd2] já possui a url [https://test-url2] associada a ele.\n"
+        (is (= "\nO comando [cmd2] já possui o URL [https://test-url2] associado a ele.\n"
                (with-out-str (actions/add-command-url {:opts {:command command :url test-url}}))))
         (is (= [{:url test-url}]
                (db/get-command-urls-records command))))
+      (fixtures/reset-database))))
+
+
+(deftest remove-command-url-test
+  (testing "Remove an URL from the command - Existing multiple URLs."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd000"
+            test-url "https://test-url0a"]
+        (actions/remove-command-url {:opts {:command command :url test-url}})
+        (is (= [{:url "https://test-url0b"}]
+               (db/get-command-urls-records command))))
+      (fixtures/reset-database)))
+  (testing "Remove an URL from the command - Just one existing URL."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            test-url "https://test-url2"]
+        (actions/remove-command-url {:opts {:command command :url test-url}})
+        (is (= []
+               (db/get-command-urls-records command))))
+      (fixtures/reset-database)))
+  (testing "Remove an URL from the command - Nonexistent URL."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd2"
+            test-url "https://nonexistent-url"]
+        (is (= "\nO comando [cmd2] não possui o URL [https://nonexistent-url] associado a ele.\n"
+               (with-out-str (actions/remove-command-url {:opts {:command command :url test-url}}))))
+        (is (= [{:url "https://test-url2"}]
+               (db/get-command-urls-records command))))
+      (fixtures/reset-database)))
+  (testing "Remove an URL from the command - Nonexistent command."
+    (with-redefs [db/db (str fixtures/temp-db-file)]
+      (let [command "cmd3"
+            test-url "https://test-url3"]
+        (is (= "\nComando [cmd3] não encontrado na base de dados.\n"
+               (with-out-str (actions/remove-command-url {:opts {:command command :url test-url}})))))
       (fixtures/reset-database))))
 
 
