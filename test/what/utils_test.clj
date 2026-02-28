@@ -27,7 +27,7 @@
     (is (= [output-value result] [prompt nil]))))
 
 
-(deftest process_string-list-test
+(deftest process-string-list-test
   (testing "Integers common case"
     (is (= [0 1 2]
            (utils/process-string-list "0 1 2" Integer/parseInt))))
